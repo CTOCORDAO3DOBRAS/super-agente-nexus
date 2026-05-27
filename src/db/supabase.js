@@ -16,7 +16,7 @@ function getClient() {
  */
 export async function getConversation(phone, channel) {
   const { data, error } = await getClient()
-    .from('mensagens')
+    .from('messages')
     .select('role, content, stage, created_at')
     .eq('phone', phone)
     .eq('channel', channel)
@@ -34,7 +34,7 @@ export async function getConversation(phone, channel) {
  * Persiste uma mensagem (user ou assistant) no histórico da conversa.
  */
 export async function saveMessage(phone, channel, role, content, stage) {
-  const { error } = await getClient().from('mensagens').insert({
+  const { error } = await getClient().from('messages').insert({
     phone,
     channel,
     role,
@@ -51,15 +51,27 @@ export async function saveMessage(phone, channel, role, content, stage) {
  * Cria ou atualiza o registro do lead no CRM interno.
  */
 export async function saveLead(phone, name, channel, stage) {
-  const { error } = await getClient()
-    .from('leads')
-    .upsert(
-      { phone, name, channel, stage, updated_at: new Date().toISOString() },
-      { onConflict: 'phone,channel' }
-    );
+  const db = getClient();
 
-  if (error) {
-    console.error('[Supabase] Erro ao salvar lead:', error.message);
+  const { data: existing } = await db
+    .from('leads')
+    .select('id')
+    .eq('phone', phone)
+    .eq('channel', channel)
+    .maybeSingle();
+
+  if (existing) {
+    const { error } = await db
+      .from('leads')
+      .update({ name, stage, updated_at: new Date().toISOString() })
+      .eq('phone', phone)
+      .eq('channel', channel);
+    if (error) console.error('[Supabase] Erro ao atualizar lead:', error.message);
+  } else {
+    const { error } = await db
+      .from('leads')
+      .insert({ phone, name, channel, stage });
+    if (error) console.error('[Supabase] Erro ao inserir lead:', error.message);
   }
 }
 

@@ -6,12 +6,11 @@ CREATE TABLE IF NOT EXISTS leads (
   channel     TEXT NOT NULL CHECK (channel IN ('whatsapp', 'instagram', 'email')),
   stage       TEXT NOT NULL DEFAULT 'QUALIFICACAO' CHECK (stage IN ('QUALIFICACAO', 'OFERTA', 'POS_VENDA')),
   created_at  TIMESTAMPTZ DEFAULT now(),
-  updated_at  TIMESTAMPTZ DEFAULT now(),
-  UNIQUE (phone, channel)
+  updated_at  TIMESTAMPTZ DEFAULT now()
 );
 
 -- Tabela de histórico de mensagens por conversa
-CREATE TABLE IF NOT EXISTS mensagens (
+CREATE TABLE IF NOT EXISTS messages (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   phone       TEXT NOT NULL,
   channel     TEXT NOT NULL,
@@ -22,13 +21,13 @@ CREATE TABLE IF NOT EXISTS mensagens (
 );
 
 -- Índice para buscar mensagens de um contato rapidamente
-CREATE INDEX IF NOT EXISTS idx_mensagens_phone_channel
-  ON mensagens (phone, channel, created_at);
+CREATE INDEX IF NOT EXISTS idx_messages_phone_channel
+  ON messages (phone, channel, created_at);
 
 -- RLS: apenas a service key pode ler/escrever (o agente usa service key no backend)
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
-ALTER TABLE mensagens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
 -- Política: bloqueia acesso público — apenas service key (bypass RLS) tem acesso
 CREATE POLICY "Apenas service key" ON leads FOR ALL USING (false);
-CREATE POLICY "Apenas service key" ON mensagens FOR ALL USING (false);
+CREATE POLICY "Apenas service key" ON messages FOR ALL USING (false);
