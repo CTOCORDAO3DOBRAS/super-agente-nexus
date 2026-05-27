@@ -1,0 +1,21 @@
+{
+  "name": "super-agente-nexus",
+  "version": "1.0.0",
+  "description": "Agente de IA Nexus - Funil de vendas via WhatsApp, Instagram e Email",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@supabase/supabase-js": "^2.49.0",
+    "axios": "^1.7.0",
+    "express": "^4.19.0",
+    "dotenv": "^16.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
