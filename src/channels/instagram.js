@@ -43,6 +43,7 @@ function handleVerification(req, res) {
 }
 
 async function handleIncomingMessage(req, res) {
+  console.log('[Instagram] POST recebido:' + JSON.stringify(req.body));
   // Responde 200 imediatamente conforme exigido pela Meta
   res.sendStatus(200);
 
