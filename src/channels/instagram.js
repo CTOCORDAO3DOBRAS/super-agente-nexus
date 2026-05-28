@@ -2,11 +2,10 @@ import axios from 'axios';
 import { processMessage } from '../agents/nexus.js';
 
 const META_GRAPH_URL = 'https://graph.facebook.com/v20.0';
-const INSTAGRAM_ACCOUNT_ID = '17841436054624386';
 
 async function sendInstagramMessage(recipientId, text) {
   await axios.post(
-    `${META_GRAPH_URL}/${INSTAGRAM_ACCOUNT_ID}/messages`,
+    `${META_GRAPH_URL}/me/messages`,
     {
       recipient: { id: recipientId },
       message: { text },
@@ -17,9 +16,7 @@ async function sendInstagramMessage(recipientId, text) {
 }
 
 export function handleInstagramWebhook(req, res) {
-  if (req.method === 'GET') {
-    return handleVerification(req, res);
-  }
+  if (req.method === 'GET') return handleVerification(req, res);
   return handleIncomingMessage(req, res);
 }
 
