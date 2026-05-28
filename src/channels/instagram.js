@@ -53,6 +53,6 @@ async function handleIncomingMessage(req, res) {
       }
     }
   } catch (err) {
-    console.error('[Instagram] Erro no processamento do webhook:', err.message);
+    console.error('[Instagram] Erro completo:', JSON.stringify(err.response?.data || err.message));
   }
 }
