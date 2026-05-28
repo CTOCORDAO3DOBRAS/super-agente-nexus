@@ -27,3 +27,7 @@ app.post('/webhook/email', handleEmailWebhook);
 app.listen(PORT, () => {
   console.log(`[Nexus] Servidor rodando na porta ${PORT}`);
 });
+
+app.get('/privacy', (_req, res) => {
+  res.send('<h1>Privacy Policy</h1><p>MLARS Nexus Agent does not store personal data. Messages are processed in real-time only.</p>');
+});
