@@ -60,7 +60,7 @@ async function handleIncomingMessage(req, res) {
         const senderId = event.sender.id;
         const userText = event.message.text;
 
-        console.log(`[Instagram] Mensagem de ${senderId}: "${userText}"`);
+        console.log(`[Instagram] Mensagem recebida de: ${senderId}`);
 
         const { message } = await processMessage(senderId, 'instagram', userText);
 
