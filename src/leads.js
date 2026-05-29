@@ -41,7 +41,7 @@ router.post('/:produto', async (req, res) => {
     const systemPrompt = AGENT_PROMPTS[produto] || AGENT_PROMPTS['consorcio-imovel'];
     const userContext = `Novo lead: Nome: ${nome} | Produto: ${produto} | Valor: ${valor || 'não informado'} | Objetivo: ${objetivo || 'não informado'}. Gere a primeira mensagem de abordagem para WhatsApp.`;
     const completion = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20251101', max_tokens: 300,
+      model: 'claude-sonnet-4-5', max_tokens: 300,
       system: systemPrompt, messages: [{ role: 'user', content: userContext }]
     });
     const mensagem = completion.content[0].text;
