@@ -1,16 +1,6 @@
 import axios from 'axios';
-import { processMessage } from '../agents/nexus.js';
 
-const META_GRAPH_URL = 'https://graph.facebook.com/v20.0';
-const IG_ID = '17841436054624386';
-
-async function sendInstagramMessage(recipientId, text) {
-  await axios.post(
-    `${META_GRAPH_URL}/${IG_ID}/messages`,
-    { recipient: { id: recipientId }, message: { text }, messaging_type: 'RESPONSE' },
-    { params: { access_token: process.env.META_ACCESS_TOKEN } }
-  );
-}
+const N8N_WEBHOOK = 'https://cordao-3-dobras.app.n8n.cloud/webhook/69fca98e-b04e-4d77-b6f7-4e2df0359058';
 
 export function handleInstagramWebhook(req, res) {
   if (req.method === 'GET') return handleVerification(req, res);
@@ -34,14 +24,15 @@ async function handleIncomingMessage(req, res) {
     for (const entry of body.entry || []) {
       for (const event of entry.messaging || []) {
         if (!event.message?.text || event.message.is_echo) continue;
-        const senderId = event.sender.id;
-        console.log(`[Instagram] Mensagem recebida de: ${senderId}`);
-        const { message } = await processMessage(senderId, 'instagram', event.message.text);
-        await sendInstagramMessage(senderId, message);
-        console.log(`[Instagram] Resposta enviada para ${senderId}`);
+        console.log(`[Instagram] Encaminhando para n8n: ${event.sender.id}`);
+        await axios.post(N8N_WEBHOOK, {
+          senderId: event.sender.id,
+          message: event.message.text,
+          platform: 'instagram'
+        });
       }
     }
   } catch (err) {
-    console.error('[Instagram] Erro:', JSON.stringify(err.response?.data || err.message));
+    console.error('[Instagram] Erro:', err.message);
   }
 }
