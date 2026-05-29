@@ -33,3 +33,54 @@ app.listen(PORT, () => {
 app.get('/privacy', (_req, res) => {
   res.send('<h1>Privacy Policy</h1><p>MLARS Nexus Agent does not store personal data. Messages are processed in real-time only.</p>');
 });
+
+// Auto-refresh do token Instagram a cada 50 dias
+import axios from 'axios';
+async function refreshInstagramToken() {
+  try {
+    const res = await axios.get('https://graph.instagram.com/refresh_access_token', {
+      params: { grant_type: 'ig_refresh_token', access_token: process.env.META_ACCESS_TOKEN }
+    });
+    console.log('[Nexus] Token Instagram renovado:', res.data.access_token?.slice(0, 20) + '...');
+  } catch (e) {
+    console.error('[Nexus] Erro ao renovar token:', e.message);
+  }
+}
+// setInterval(refreshInstagramToken, 1000 * 60 * 60 * 24 * 50); // DESATIVADO — token inválido // a cada 50 dias
+
+// ── Baileys WhatsApp ──────────────────────────────────────────
+import { iniciarWhatsApp, getQR, getStatus } from "./channels/whatsapp-baileys.js";
+import qrcode from "qrcode";
+
+iniciarWhatsApp().catch(console.error);
+
+app.get("/whatsapp/status", (req, res) => {
+  res.json({ status: getStatus() });
+});
+
+app.get("/whatsapp/qr", async (req, res) => {
+  const qr = getQR();
+  if (!qr) {
+    return res.json({ conectado: getStatus() === "conectado", qr: null });
+  }
+  const qrImg = await qrcode.toDataURL(qr);
+  res.send(`<html><body style="background:#000;display:flex;justify-content:center;align-items:center;height:100vh">
+    <div style="text-align:center">
+      <img src="${qrImg}" style="width:300px"/>
+      <p style="color:#fff;font-family:sans-serif;margin-top:16px">Escaneie com o WhatsApp</p>
+      <p style="color:#666;font-size:12px">Atualiza automaticamente em 10s</p>
+    </div>
+    <script>setTimeout(()=>location.reload(),10000)</script>
+  </body></html>`);
+});
+
+app.post("/whatsapp/enviar", async (req, res) => {
+  try {
+    const { telefone, mensagem } = req.body;
+    const { enviarMensagemWhatsApp } = await import("./channels/whatsapp-baileys.js");
+    await enviarMensagemWhatsApp(telefone, mensagem);
+    res.json({ sucesso: true });
+  } catch (e) {
+    res.status(500).json({ erro: e.message });
+  }
+});

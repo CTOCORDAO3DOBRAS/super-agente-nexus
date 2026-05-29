@@ -3,7 +3,12 @@
     "allow": [
       "Bash(npm install *)",
       "Bash(node src/server.js)",
-      "Bash(echo \"--- Servidor PID: $!\")"
+      "Bash(echo \"--- Servidor PID: $!\")",
+      "Bash(git -C /home/daniel/super-agente-nexus remote -v)",
+      "Bash(git -C /home/daniel/super-agente-nexus status)",
+      "Bash(git *)",
+      "Bash(node --check src/db/supabase.js)",
+      "Bash(node --check src/agents/nexus.js)"
     ]
   }
 }
