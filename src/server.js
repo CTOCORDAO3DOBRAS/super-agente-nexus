@@ -3,12 +3,13 @@ import express from 'express';
 import { handleWhatsAppWebhook } from './channels/whatsapp.js';
 import { handleInstagramWebhook } from './channels/instagram.js';
 import { handleEmailWebhook } from './channels/email.js';
-
+import leadsRouter from './leads.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-
+app.use('/leads', leadsRouter);
+app.use('/lp', leadsRouter);
 // Rota de verificação de saúde — usada pelo Render para monitorar o serviço
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', agent: 'Nexus', timestamp: new Date().toISOString() });
