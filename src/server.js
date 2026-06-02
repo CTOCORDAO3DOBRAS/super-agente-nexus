@@ -92,7 +92,7 @@ app.get("/whatsapp/qr", async (req, res) => {
   const qrImg = await qrcode.toDataURL(qr);
   res.send(`<html><body style="background:#000;display:flex;justify-content:center;align-items:center;height:100vh">
     <div style="text-align:center">
-      <img src="${qrImg}" style="width:300px"/>
+      <img src="${qrImg}" style="width:500px;height:500px"/>
       <p style="color:#fff;font-family:sans-serif;margin-top:16px">Escaneie com o WhatsApp</p>
       <p style="color:#666;font-size:12px">Atualiza automaticamente em 10s</p>
     </div>
