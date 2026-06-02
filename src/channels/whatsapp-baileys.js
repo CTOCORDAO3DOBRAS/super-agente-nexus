@@ -1,5 +1,5 @@
 import makeWASocket, {
-  useMultiFileAuthState,
+  
   DisconnectReason,
   fetchLatestBaileysVersion,
 } from "@whiskeysockets/baileys";
@@ -16,7 +16,7 @@ let qrAtual = null;
 let statusConexao = "desconectado";
 
 export async function iniciarWhatsApp() {
-  const { state, saveCreds } = await useMultiFileAuthState(AUTH_PATH);
+  const { state, saveCreds } = await useSupabaseAuthState();
   const { version } = await fetchLatestBaileysVersion();
 
   sock = makeWASocket({
