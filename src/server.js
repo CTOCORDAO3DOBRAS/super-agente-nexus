@@ -4,6 +4,7 @@ import { handleWhatsAppWebhook } from './channels/whatsapp.js';
 import { handleInstagramWebhook } from './channels/instagram.js';
 import { handleEmailWebhook } from './channels/email.js';
 import leadsRouter from './leads.js';
+import { verificarFollowUps, reativarLeadsPerdidos } from './agents/closer.js';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -25,6 +26,31 @@ app.post('/webhook/instagram', handleInstagramWebhook);
 
 // Webhook de email inbound via Resend
 app.post('/webhook/email', handleEmailWebhook);
+
+// ─── CRON JOBS: FOLLOW-UP E REATIVAÇÃO ───────────────────────────────────────
+import { sendWhatsAppMessage } from './channels/whatsapp.js';
+
+// Follow-up: verifica a cada 30 minutos
+setInterval(async () => {
+  try { await verificarFollowUps(sendWhatsAppMessage); }
+  catch (err) { console.error('[CRON FOLLOW-UP]', err); }
+}, 30 * 60 * 1000);
+
+// Reativação: agenda para rodar diariamente às 10h
+const agendarReativacao = () => {
+  const agora = new Date();
+  const prox = new Date(); prox.setHours(10,0,0,0);
+  if (prox <= agora) prox.setDate(prox.getDate() + 1);
+  setTimeout(async () => {
+    try { await reativarLeadsPerdidos(sendWhatsAppMessage); }
+    catch (err) { console.error('[CRON REATIVACAO]', err); }
+    agendarReativacao();
+  }, prox - agora);
+  console.log('[CRON] Reativação agendada para', prox.toLocaleString('pt-BR'));
+};
+agendarReativacao();
+console.log('[CRON] Jobs iniciados');
+// ─────────────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
   console.log(`[Nexus] Servidor rodando na porta ${PORT}`);

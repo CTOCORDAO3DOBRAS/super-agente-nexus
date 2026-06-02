@@ -6,7 +6,7 @@ const ZAPI_BASE = `https://api.z-api.io/instances/${process.env.ZAPI_INSTANCE}/t
 /**
  * Envia uma mensagem de texto pelo WhatsApp via Z-API.
  */
-async function sendWhatsAppMessage(phone, text) {
+export async function sendWhatsAppMessage(phone, text) {
   await axios.post(
     `${ZAPI_BASE}/send-text`,
     { phone, message: text },
