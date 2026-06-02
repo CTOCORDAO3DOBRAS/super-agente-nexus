@@ -9,7 +9,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const AUTH_PATH = path.join(__dirname, "../../.baileys-auth");
 
 let sock = null;
 let qrAtual = null;
