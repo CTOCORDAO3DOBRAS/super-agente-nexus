@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { processMessage } from '../agents/nexus.js';
+import { processarMensagem } from '../agents/closer.js';
 
 const ZAPI_BASE = `https://api.z-api.io/instances/${process.env.ZAPI_INSTANCE}/token/${process.env.ZAPI_TOKEN}`;
 
@@ -38,7 +38,7 @@ export async function handleWhatsAppWebhook(req, res) {
 
     console.log(`[WhatsApp] Mensagem de ${phone}: "${userText}"`);
 
-    const { message } = await processMessage(phone, 'whatsapp', userText, senderName);
+    const { resposta: message } = await processarMensagem(phone, userText, { nome: senderName });
 
     await sendWhatsAppMessage(phone, message);
 
