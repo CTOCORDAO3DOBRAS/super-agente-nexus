@@ -103,8 +103,8 @@ app.get("/whatsapp/qr", async (req, res) => {
 app.post("/whatsapp/enviar", async (req, res) => {
   try {
     const { telefone, mensagem } = req.body;
-    const { enviarMensagemWhatsApp } = await import("./channels/whatsapp-baileys.js");
-    await enviarMensagemWhatsApp(telefone, mensagem);
+    
+    await sendWhatsAppMessage(telefone, mensagem);
     res.json({ sucesso: true });
   } catch (e) {
     res.status(500).json({ erro: e.message });
