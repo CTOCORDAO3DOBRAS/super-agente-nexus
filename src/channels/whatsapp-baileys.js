@@ -1,3 +1,4 @@
+import { useSupabaseAuthState } from "./baileys-auth-supabase.js";
 import makeWASocket, {
   
   DisconnectReason,
