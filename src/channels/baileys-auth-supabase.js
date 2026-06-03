@@ -1,7 +1,3 @@
-/**
- * NEXUS AUTOMATA — Baileys Auth State via Supabase
- * Substitui useMultiFileAuthState (arquivo) por Supabase (persistente entre deploys)
- */
 import { createClient } from '@supabase/supabase-js';
 import { initAuthCreds, BufferJSON, proto } from '@whiskeysockets/baileys';
 
@@ -9,14 +5,27 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 const TABLE = 'baileys_auth';
 
 async function get(key) {
-  const { data } = await supabase.from(TABLE).select('value').eq('key', key).single();
-  if (!data) return null;
+  const { data, error } = await supabase.from(TABLE).select('value').eq('key', key).single();
+  if (error) {
+    console.log(`[SupabaseAuth] GET erro key=${key}:`, error.message);
+    return null;
+  }
+  if (!data) {
+    console.log(`[SupabaseAuth] GET null key=${key}`);
+    return null;
+  }
+  console.log(`[SupabaseAuth] GET ok key=${key}`);
   return JSON.parse(data.value, BufferJSON.reviver);
 }
 
 async function set(key, value) {
   const serialized = JSON.stringify(value, BufferJSON.replacer);
-  await supabase.from(TABLE).upsert({ key, value: serialized }, { onConflict: 'key' });
+  const { error } = await supabase.from(TABLE).upsert({ key, value: serialized }, { onConflict: 'key' });
+  if (error) {
+    console.log(`[SupabaseAuth] SET erro key=${key}:`, error.message);
+  } else {
+    console.log(`[SupabaseAuth] SET ok key=${key}`);
+  }
 }
 
 async function del(key) {
@@ -24,8 +33,14 @@ async function del(key) {
 }
 
 export async function useSupabaseAuthState() {
+  console.log('[SupabaseAuth] Carregando creds do Supabase...');
   let creds = await get('creds');
-  if (!creds) creds = initAuthCreds();
+  if (!creds) {
+    console.log('[SupabaseAuth] Creds não encontradas — iniciando novas.');
+    creds = initAuthCreds();
+  } else {
+    console.log('[SupabaseAuth] Creds carregadas com sucesso!');
+  }
 
   return {
     state: {
