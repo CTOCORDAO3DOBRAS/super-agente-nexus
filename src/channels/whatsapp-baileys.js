@@ -5,17 +5,19 @@ import makeWASocket, {
 } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import QRCode from "qrcode";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let sock = null;
 let qrAtual = null;
 let qrImageBase64 = null;
 let statusConexao = "desconectado";
+let reconectando = false;
 
 export async function iniciarWhatsApp() {
+  if (reconectando) {
+    console.log("[Baileys] Reconexão já em andamento, ignorando.");
+    return;
+  }
+
   const { state, saveCreds } = await useSupabaseAuthState();
   const { version } = await fetchLatestBaileysVersion();
 
@@ -25,43 +27,50 @@ export async function iniciarWhatsApp() {
     printQRInTerminal: false,
     browser: ["Nexus Agent", "Chrome", "1.0"],
     syncFullHistory: false,
+    markOnlineOnConnect: false,
+    shouldSyncHistoryMessage: () => false,
+    generateHighQualityLinkPreview: false,
   });
 
   sock.ev.on("connection.update", async ({ connection, lastDisconnect, qr }) => {
     if (qr) {
       qrAtual = qr;
       statusConexao = "aguardando_qr";
-      // Gerar imagem base64 do QR para exibir no browser
       qrImageBase64 = await QRCode.toDataURL(qr);
-      console.log("[Baileys] QR Code gerado — acesse /whatsapp/qr no browser");
+      console.log("[Baileys] QR gerado — acesse /whatsapp/qr");
     }
 
     if (connection === "open") {
       qrAtual = null;
       qrImageBase64 = null;
       statusConexao = "conectado";
+      reconectando = false;
       console.log("[Baileys] WhatsApp conectado!");
       await saveCreds();
-      console.log("[Baileys] Credenciais salvas no Supabase!");
+      console.log("[Baileys] Credenciais salvas!");
     }
 
     if (connection === "close") {
       const codigo = new Boom(lastDisconnect?.error)?.output?.statusCode;
       statusConexao = "desconectado";
-      console.log(`[Baileys] Conexão fechada. Código: ${codigo}`);
+      console.log(`[Baileys] Fechado. Código: ${codigo}`);
 
       if (codigo === DisconnectReason.loggedOut) {
-        console.log("[Baileys] Deslogado — acesse /whatsapp/qr para reconectar");
-      } else {
-        console.log("[Baileys] Reconectando em 3s...");
-        setTimeout(() => iniciarWhatsApp(), 3000);
+        reconectando = false;
+        console.log("[Baileys] Deslogado — acesse /whatsapp/qr");
+      } else if (!reconectando) {
+        reconectando = true;
+        console.log("[Baileys] Reconectando em 5s...");
+        setTimeout(async () => {
+          reconectando = false;
+          await iniciarWhatsApp();
+        }, 5000);
       }
     }
   });
 
   sock.ev.on("creds.update", async () => {
     await saveCreds();
-    console.log("[Baileys] Creds atualizadas e salvas.");
   });
 
   return sock;
