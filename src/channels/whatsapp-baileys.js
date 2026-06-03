@@ -5,12 +5,24 @@ import makeWASocket, {
 } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 import QRCode from "qrcode";
+import { processarMensagem } from "../agents/closer.js";
 
 let sock = null;
 let qrAtual = null;
 let qrImageBase64 = null;
 let statusConexao = "desconectado";
 let reconectando = false;
+
+async function handleIncomingMessage(phone, text, senderName) {
+  try {
+    console.log(`[WhatsApp] Mensagem recebida de ${phone}: "${text}"`);
+    const { resposta } = await processarMensagem(phone, text, { nome: senderName });
+    await enviarMensagemWhatsApp(phone, resposta);
+    console.log(`[WhatsApp] Resposta enviada para ${phone}`);
+  } catch (err) {
+    console.error(`[WhatsApp] Erro ao processar mensagem de ${phone}:`, err.message);
+  }
+}
 
 export async function iniciarWhatsApp() {
   if (reconectando) {
@@ -71,6 +83,29 @@ export async function iniciarWhatsApp() {
 
   sock.ev.on("creds.update", async () => {
     await saveCreds();
+  });
+
+  // Handler de mensagens reais recebidas pelo WhatsApp
+  sock.ev.on("messages.upsert", async ({ messages, type }) => {
+    if (type !== "notify") return;
+    for (const msg of messages) {
+      if (msg.key.fromMe) continue;
+      if (!msg.message) continue;
+
+      const phone = msg.key.remoteJid.replace("@s.whatsapp.net", "");
+      if (phone.includes("g.us")) continue; // Ignorar grupos
+
+      const text =
+        msg.message?.conversation ||
+        msg.message?.extendedTextMessage?.text ||
+        msg.message?.imageMessage?.caption ||
+        null;
+
+      if (!text) continue;
+
+      const senderName = msg.pushName || null;
+      await handleIncomingMessage(phone, text, senderName);
+    }
   });
 
   return sock;
