@@ -5,7 +5,12 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 const TABLE = 'baileys_auth';
 
 async function get(key) {
-  const { data, error } = await supabase.from(TABLE).select('value').eq('key', key).single();
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select('value')
+    .eq('key', key)
+    .maybeSingle();
+
   if (error) {
     console.log(`[SupabaseAuth] GET erro key=${key}:`, error.message);
     return null;
@@ -20,7 +25,10 @@ async function get(key) {
 
 async function set(key, value) {
   const serialized = JSON.stringify(value, BufferJSON.replacer);
-  const { error } = await supabase.from(TABLE).upsert({ key, value: serialized }, { onConflict: 'key' });
+  const { error } = await supabase
+    .from(TABLE)
+    .upsert({ key, value: serialized }, { onConflict: 'key' });
+
   if (error) {
     console.log(`[SupabaseAuth] SET erro key=${key}:`, error.message);
   } else {
