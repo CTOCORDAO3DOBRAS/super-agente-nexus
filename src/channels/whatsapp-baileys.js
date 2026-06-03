@@ -4,7 +4,7 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
 } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
-import qrcode from "qrcode-terminal";
+import QRCode from "qrcode";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -12,6 +12,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let sock = null;
 let qrAtual = null;
+let qrImageBase64 = null;
 let statusConexao = "desconectado";
 
 export async function iniciarWhatsApp() {
@@ -21,7 +22,7 @@ export async function iniciarWhatsApp() {
   sock = makeWASocket({
     version,
     auth: state,
-    printQRInTerminal: true,
+    printQRInTerminal: false,
     browser: ["Nexus Agent", "Chrome", "1.0"],
     syncFullHistory: false,
   });
@@ -30,12 +31,14 @@ export async function iniciarWhatsApp() {
     if (qr) {
       qrAtual = qr;
       statusConexao = "aguardando_qr";
-      qrcode.generate(qr, { small: true });
-      console.log("[Baileys] QR Code gerado — escaneie pelo WhatsApp");
+      // Gerar imagem base64 do QR para exibir no browser
+      qrImageBase64 = await QRCode.toDataURL(qr);
+      console.log("[Baileys] QR Code gerado — acesse /whatsapp/qr no browser");
     }
 
     if (connection === "open") {
       qrAtual = null;
+      qrImageBase64 = null;
       statusConexao = "conectado";
       console.log("[Baileys] WhatsApp conectado!");
       await saveCreds();
@@ -48,7 +51,7 @@ export async function iniciarWhatsApp() {
       console.log(`[Baileys] Conexão fechada. Código: ${codigo}`);
 
       if (codigo === DisconnectReason.loggedOut) {
-        console.log("[Baileys] Deslogado — escaneie novamente");
+        console.log("[Baileys] Deslogado — acesse /whatsapp/qr para reconectar");
       } else {
         console.log("[Baileys] Reconectando em 3s...");
         setTimeout(() => iniciarWhatsApp(), 3000);
@@ -74,4 +77,5 @@ export async function enviarMensagemWhatsApp(telefone, mensagem) {
 }
 
 export function getQR() { return qrAtual; }
+export function getQRImage() { return qrImageBase64; }
 export function getStatus() { return statusConexao; }
