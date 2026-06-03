@@ -187,7 +187,7 @@ function calcularProximoEstado(sessao, mensagemLead) {
 }
 
 async function chamarClaude(systemPrompt, historico) {
-  const response = await anthropic.messages.create({ model: 'claude-sonnet-4-5-20251001', max_tokens: 500, system: systemPrompt, messages: historico.slice(-10) });
+  const response = await anthropic.messages.create({ model: 'claude-sonnet-4-5', max_tokens: 500, system: systemPrompt, messages: historico.slice(-10) });
   return response.content[0].text;
 }
 
