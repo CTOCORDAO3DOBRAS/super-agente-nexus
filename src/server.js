@@ -28,7 +28,7 @@ app.post('/webhook/instagram', handleInstagramWebhook);
 app.post('/webhook/email', handleEmailWebhook);
 
 // ─── CRON JOBS: FOLLOW-UP E REATIVAÇÃO ───────────────────────────────────────
-import { sendWhatsAppMessage } from './channels/whatsapp.js';
+import { sendWhatsAppMessage } from './channels/zapi.js';
 
 // Follow-up: verifica a cada 30 minutos
 setInterval(async () => {
